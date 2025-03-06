@@ -19,6 +19,7 @@ import html
 from datetime import datetime
 from sqlalchemy import text, func
 from sqlalchemy.sql import union_all
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # Set how this API should be titled and the current version
