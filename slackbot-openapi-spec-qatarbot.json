@@ -1,0 +1,493 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Users API for Watson Assistant",
+      "description": "REST API for managing users in a database for IBM Watson Assistant",
+      "version": "1.0.1"
+    },
+    "servers": [
+      {
+        "description": "Code Engine deployment",
+        "url": "https://{appname}.{projectid}.{region}.codeengine.appdomain.cloud",
+        "variables": {
+          "appname": {
+            "default": "myapp",
+            "description": "application name"
+          },
+          "projectid": {
+            "default": "projectid",
+            "description": "the Code Engine project ID"
+          },
+          "region": {
+            "default": "us-south",
+            "description": "the deployment region, e.g., us-south"
+          }
+        }
+      },
+      {
+        "description": "local test",
+        "url": "http://127.0.0.1:{port}",
+        "variables": {
+          "port": {
+            "default": "5000",
+            "description": "local port to use"
+          }
+        }
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "ApiKeyAuth": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "API_TOKEN",
+          "description": "API token for authentication"
+        }
+      },
+      "schemas": {
+        "User": {
+          "type": "object",
+          "required": [
+            "name",
+            "surname",
+            "email",
+            "password",
+            "cellnumber",
+            "preferences"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "User's first name",
+              "maxLength": 32
+            },
+            "surname": {
+              "type": "string",
+              "description": "User's last name",
+              "maxLength": 32
+            },
+            "email": {
+              "type": "string",
+              "description": "User's email address",
+              "format": "email",
+              "maxLength": 50
+            },
+            "password": {
+              "type": "string",
+              "description": "User's password (min 6 characters)",
+              "format": "password",
+              "minLength": 6,
+              "maxLength": 50
+            },
+            "cellnumber": {
+              "type": "string",
+              "description": "User's cell phone number",
+              "maxLength": 50
+            },
+            "preferences": {
+              "type": "string",
+              "description": "User's comma-separated preferences"
+            }
+          },
+          "example": {
+            "name": "Patrick",
+            "surname": "Dlamini",
+            "email": "PD@gmail.com",
+            "password": "Password123",
+            "cellnumber": "0609805147",
+            "preferences": "Educational and Economic Support,Health and Well-being Support"
+          }
+        },
+        "UserResponse": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Unique identifier for the user"
+            },
+            "name": {
+              "type": "string",
+              "description": "User's first name"
+            },
+            "surname": {
+              "type": "string",
+              "description": "User's last name"
+            },
+            "email": {
+              "type": "string",
+              "description": "User's email address"
+            },
+            "cellnumber": {
+              "type": "string",
+              "description": "User's cell phone number"
+            },
+            "preferences": {
+              "type": "string",
+              "description": "User's comma-separated preferences"
+            }
+          },
+          "example": {
+            "id": 1,
+            "name": "Patrick",
+            "surname": "Dlamini",
+            "email": "PD@gmail.com",
+            "cellnumber": "0609805147",
+            "preferences": "Educational and Economic Support,Health and Well-being Support"
+          }
+        },
+        "LoginRequest": {
+          "type": "object",
+          "required": [
+            "email",
+            "password"
+          ],
+          "properties": {
+            "email": {
+              "type": "string",
+              "description": "User's email address"
+            },
+            "password": {
+              "type": "string",
+              "description": "User's password",
+              "format": "password"
+            }
+          },
+          "example": {
+            "email": "PD@gmail.com",
+            "password": "Password123"
+          }
+        },
+        "Error": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "Error message"
+            },
+            "detail": {
+              "type": "object",
+              "description": "Additional error details"
+            }
+          },
+          "example": {
+            "message": "User not found"
+          }
+        },
+        "DatabaseRecreate": {
+          "type": "object",
+          "properties": {
+            "confirmation": {
+              "type": "boolean",
+              "description": "Confirmation flag"
+            }
+          },
+          "required": [
+            "confirmation"
+          ],
+          "example": {
+            "confirmation": true
+          }
+        },
+        "Message": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "Response message"
+            }
+          },
+          "example": {
+            "message": "database recreated"
+          }
+        }
+      }
+    },
+    "paths": {
+      "/": {
+        "get": {
+          "summary": "API Health Check",
+          "description": "Verify that the API server is running",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Success",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Message"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/userLogin": {
+        "post": {
+          "summary": "User Login",
+          "description": "Authenticate user with email and password",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful login",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Invalid credentials",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users": {
+        "get": {
+          "summary": "Get All Users",
+          "description": "Retrieve all user records",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of users",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "summary": "Create User",
+          "description": "Insert a new user with the given attributes",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User created",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "User with this email already exists",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users/{email}": {
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Email of the user to operate on"
+          }
+        ],
+        "get": {
+          "summary": "Get User by Email",
+          "description": "Retrieve user record with the specified email",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "put": {
+          "summary": "Update User",
+          "description": "Update a user with the given attributes",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Updated user details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete User",
+          "description": "Delete a user with the given email",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": "User deleted successfully"
+            },
+            "404": {
+              "description": "User not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/database/recreate": {
+        "post": {
+          "summary": "Recreate Database",
+          "description": "Recreate the database schema and insert sample data",
+          "security": [
+            {
+              "ApiKeyAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "confirmation",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "boolean"
+              },
+              "description": "Confirmation flag"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Database recreated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Message"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Missing confirmation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
