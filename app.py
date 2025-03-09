@@ -122,7 +122,7 @@ class UserModel(db.Model):
     name = db.Column('NAME',db.String(32))
     surname = db.Column('SURNAME',db.String(32))
     email = db.Column('EMAIL',db.String(50))
-    password = db.Column('PASSWORD',db.String(50))
+    password = db.Column('PASSWORD',db.String(250))
     cellnumber = db.Column('CELLNUMBER', db.String(50))
     preferences = db.Column('PREFERENCES', db.String(1000))
     
