@@ -237,7 +237,8 @@ def update_user(data, email):
     """Update a user
     Update a user with the given attributes.
     """
-    user = UserModel.query.filter(UserModel.email == email).first()
+    # First find the user with the given email
+    user = UserModel.query.filter_by(email=email).first()
     
     if not user:
         abort(404, message='User not found')
@@ -254,8 +255,6 @@ def update_user(data, email):
     
     db.session.commit()
     return user
-
-
 
 # (re-)create the users table with sample records
 @app.post('/database/recreate')
