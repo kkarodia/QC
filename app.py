@@ -126,6 +126,14 @@ class UserModel(db.Model):
     cellnumber = db.Column('CELLNUMBER', db.String(50))
     preferences = db.Column('PREFERENCES', db.String(1000))
     
+# Input schema for user update (similar to UserInSchema but without required fields)
+class UserUpdateSchema(Schema):
+    name = String()
+    surname = String()
+    email = String()
+    password = String()
+    cellnumber = String()
+    preferences = String()
     
 
 # the Python output for Certifications
@@ -179,6 +187,44 @@ def user_login(data):
         abort(401, message='Invalid email or password')
     
     return user
+# Update a user's details
+@app.patch('/userupdate/<string:email>')
+@app.input(UserUpdateSchema, location='json')
+@app.output(UserOutSchema)
+@app.auth_required(auth)
+def update_user(email, data):
+    """Update user details
+    Update a user with the given email address with new details
+    """
+    # Find the user by email
+    user = UserModel.query.filter(UserModel.email == email).first()
+    
+    if not user:
+        abort(404, message='User not found')
+    
+    # Update the user fields that were provided
+    if 'name' in data and data['name']:
+        user.name = data['name']
+    if 'surname' in data and data['surname']:
+        user.surname = data['surname']
+    if 'email' in data and data['email']:
+        # Check if the new email already exists (if email is being changed)
+        if data['email'] != email:
+            existing_user = UserModel.query.filter(UserModel.email == data['email']).first()
+            if existing_user:
+                abort(409, message='User with this email already exists')
+        user.email = data['email']
+    if 'password' in data and data['password']:
+        user.password = generate_password_hash(data['password'])
+    if 'cellnumber' in data and data['cellnumber']:
+        user.cellnumber = data['cellnumber']
+    if 'preferences' in data and data['preferences']:
+        user.preferences = data['preferences']
+    
+    # Commit the changes to the database
+    db.session.commit()
+    
+    return user
 
 # Get user by email
 @app.get('/users/<string:email>')
@@ -228,33 +274,7 @@ def create_user(data):
     return user
 
 
-# Update user
-@app.put('/users/<string:email>')
-@app.input(UserInSchema, location='json')
-@app.output(UserOutSchema)
-@app.auth_required(auth)
-def update_user(data, email):
-    """Update a user
-    Update a user with the given attributes.
-    """
-    # First find the user with the given email
-    user = UserModel.query.filter_by(email=email).first()
-    
-    if not user:
-        abort(404, message='User not found')
-    
-    # Update user fields
-    user.name = data['name']
-    user.surname = data['surname']
-    user.cellnumber = data['cellnumber']
-    user.preferences = data['preferences']
-    
-    # Only update password if it's different
-    if data['password']:
-        user.password = generate_password_hash(data['password'])
-    
-    db.session.commit()
-    return user
+
 
 # (re-)create the users table with sample records
 @app.post('/database/recreate')
